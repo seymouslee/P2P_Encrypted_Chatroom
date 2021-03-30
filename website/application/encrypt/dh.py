@@ -1,7 +1,7 @@
 from binascii import hexlify
 from hashlib import sha256
 from os import urandom
-from prime_num import primes
+from .prime_num import primes
 
 
 class DiffieHellman:
@@ -80,4 +80,5 @@ alice_shared = DiffieHellman.generate_shared_key_static(
     alice_private, bob_public)
 bob_shared = DiffieHellman.generate_shared_key_static(
     bob_private, alice_public)
+
 #print(alice_shared == bob_shared)

@@ -2,6 +2,8 @@ from flask import Blueprint
 from flask import Flask, render_template, url_for, redirect, request, session, jsonify, flash, Blueprint
 from .database import DataBase
 
+from application.encrypt.dh import DiffieHellman
+
 view = Blueprint("views", __name__)
 
 
@@ -24,6 +26,16 @@ def login():
         if len(name) >= 2:
             session[NAME_KEY] = name
             flash(f'You were successfully logged in as {name}.')
+
+            # generating keys for DH
+            dh = DiffieHellman()
+            private_key, public_key = dh.get_private_key(), dh.generate_public_key()
+
+            # insert keys into db
+            db = DataBase()
+            db.save_keys(name, public_key, private_key)
+            db.get_all_keys()
+
             return redirect(url_for("views.home"))
         else:
             flash("1Name must be longer than 1 character.")
@@ -100,6 +112,28 @@ def get_history(name):
     messages = remove_seconds_from_messages(msgs)
 
     return messages
+
+
+@view.route("/generate-keys", methods=["GET"])
+def generate_keys():
+    dh = DiffieHellman()
+    private_key, public_key = dh.get_private_key(), dh.generate_public_key()
+    return jsonify({"private_key": private_key, "public_key": public_key, })
+
+
+@view.route("/generate-shared-key", methods=["GET"])
+def generate_shared_key():
+    try:
+        local_private_key = request.args.get("local_private_key")
+        remote_public_key = request.args.get("remote_public_key")
+        print(local_private_key)
+        print(remote_public_key)
+        shared_key = DiffieHellman.generate_shared_key_static(
+            local_private_key, remote_public_key
+        )
+    except:
+        return jsonify({"message": "Invalid public key"}), 400
+    return jsonify({"shared_key": shared_key})
 
 
 # UTILITIES
