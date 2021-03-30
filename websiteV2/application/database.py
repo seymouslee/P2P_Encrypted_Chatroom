@@ -71,17 +71,6 @@ class DataBase:
         """
         returns True if the user is valid
         """
-        # query = f"SELECT * FROM {USER_TABLE} WHERE USERID = {user} AND PASSWORD = {epwd}"
-        # print(query)
-
-        # params = (userid, password)
-        query = f"SELECT * FROM {USER_TABLE}"
-        self.cursor.execute(query)
-        result = self.cursor.fetchall()
-        print("the result is:")
-        print(result)
-        
-
         query = f"SELECT * FROM {USER_TABLE} WHERE USERID = ? AND PASSWORD + ?"
         self.cursor.execute(query, (user, epwd))
         result = self.cursor.fetchall()
@@ -91,6 +80,23 @@ class DataBase:
             return True
         else:
             return False
+
+    def username_taken(self, user):
+        """
+        returns True if the user has not been taken
+        """
+        query = f"SELECT * FROM {USER_TABLE} WHERE USERID = ?"
+        self.cursor.execute(query, (user,))
+        result = self.cursor.fetchall()
+        if result:
+            return False
+        else:
+            return True
+
+    def create_user(self, user, pwd):
+        query = f"INSERT INTO {USER_TABLE} VALUES (?, ?)"
+        self.cursor.execute(query, (user, pwd))
+        self.conn.commit()
 
     def get_all_messages(self, limit=100, name=None):
         """
