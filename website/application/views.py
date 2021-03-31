@@ -67,11 +67,11 @@ def signup():
                 hashedpw = hashlib.sha256(pw.encode()).hexdigest()
                 db.create_user(name, hashedpw)
 
-                # generating keys for DH
-                private_key, public_key = dh.get_private_key(), dh.generate_public_key()
-                # insert keys into db
-                db.save_keys(name, public_key, private_key)
-                db.get_all_keys()
+                # # generating keys for DH
+                # private_key, public_key = dh.get_private_key(), dh.generate_public_key()
+                # # insert keys into db
+                # db.save_keys(name, public_key, private_key)
+                # db.get_all_keys()
 
                 return redirect(url_for("views.login"))
 
