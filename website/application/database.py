@@ -8,6 +8,7 @@ import time
 FILE = "messages.db"
 PLAYLIST_TABLE = "Messages"
 KEY_TABLE = "Pub_keys"
+USER_TABLE = "Users"
 
 
 class DataBase:
@@ -54,6 +55,47 @@ class DataBase:
         query = f"""CREATE TABLE IF NOT EXISTS {KEY_TABLE}
                     (ID INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, pu TEXT, pk TEXT)"""
         self.cursor.execute(query)
+        self.conn.commit()
+
+    def _create_User_table(self):
+        """
+        create new user table if one doesn't exist
+        :return: None
+        """
+        query = f"""CREATE TABLE IF NOT EXISTS {USER_TABLE}
+                    (userid TEXT PRIMARY KEY NOT NULL, password TEXT NOT NULL)"""
+        self.cursor.execute(query)
+        self.conn.commit()
+
+    def verify_user(self, user, epwd):
+        """
+        returns True if the user is valid
+        """
+        query = f"SELECT * FROM {USER_TABLE} WHERE USERID = ? AND PASSWORD + ?"
+        self.cursor.execute(query, (user, epwd))
+        result = self.cursor.fetchall()
+        print("the result is:")
+        print(result)
+        if result:
+            return True
+        else:
+            return False
+
+    def username_taken(self, user):
+        """
+        returns True if the user has not been taken
+        """
+        query = f"SELECT * FROM {USER_TABLE} WHERE USERID = ?"
+        self.cursor.execute(query, (user,))
+        result = self.cursor.fetchall()
+        if result:
+            return False
+        else:
+            return True
+
+    def create_user(self, user, pwd):
+        query = f"INSERT INTO {USER_TABLE} VALUES (?, ?)"
+        self.cursor.execute(query, (user, pwd))
         self.conn.commit()
 
     def get_all_messages(self, limit=100, name=None):

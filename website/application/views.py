@@ -1,5 +1,6 @@
 from flask import Blueprint
 from flask import Flask, render_template, url_for, redirect, request, session, jsonify, flash, Blueprint
+import hashlib
 from .database import DataBase
 
 from application.encrypt.dh import DiffieHellman
@@ -10,6 +11,7 @@ view = Blueprint("views", __name__)
 # GLOBAL CONSTANTS
 NAME_KEY = 'name'
 MSG_LIMIT = 20
+PW_SALT = '7f6ZHW%@D6BrBP'
 
 # VIEWS
 
@@ -21,26 +23,65 @@ def login():
     :exception POST
     :return: None
     """
+    dh = DiffieHellman()
+    db = DataBase()
+
     if request.method == "POST":  # if user input a name
         name = request.form["inputName"]
-        if len(name) >= 2:
+        pw = request.form["inputPW"]
+
+        # salf+hash user input
+        pw = pw + PW_SALT
+        hashedpw = hashlib.sha256(pw.encode()).hexdigest()
+
+        # if user input userid and pw is correct
+        if db.verify_user(name, hashedpw):
+
             session[NAME_KEY] = name
             flash(f'You were successfully logged in as {name}.')
 
-            # generating keys for DH
-            dh = DiffieHellman()
-            private_key, public_key = dh.get_private_key(), dh.generate_public_key()
-
-            # insert keys into db
-            db = DataBase()
-            db.save_keys(name, public_key, private_key)
-            db.get_all_keys()
-
             return redirect(url_for("views.home"))
+        else:
+            flash("1Please check your username and password.")
+
+    return render_template("login.html", **{"session": session})
+
+
+@view.route("/signup", methods=["POST", "GET"])
+def signup():
+    """
+    displays the signup page and sends
+    :exception POST
+    :return: None
+    """
+
+    db = DataBase()
+
+    if request.method == "POST":  # if user input a name
+        name = request.form["inputName"]
+        pw = request.form["inputPW"]
+
+        if len(name) >= 2:
+            if db.username_taken(name):
+                pw = pw + PW_SALT
+                hashedpw = hashlib.sha256(pw.encode()).hexdigest()
+                db.create_user(name, hashedpw)
+
+                # generating keys for DH
+                private_key, public_key = dh.get_private_key(), dh.generate_public_key()
+                # insert keys into db
+                db.save_keys(name, public_key, private_key)
+                db.get_all_keys()
+
+                return redirect(url_for("views.login"))
+
+                flash(f'1The account, {name} has been created.')
+            else:
+                flash("1Username has already been taken.")
         else:
             flash("1Name must be longer than 1 character.")
 
-    return render_template("login.html", **{"session": session})
+    return render_template("signup.html")
 
 
 @view.route("/logout")

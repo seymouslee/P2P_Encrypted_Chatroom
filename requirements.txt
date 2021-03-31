@@ -1,4 +1,11 @@
 flask
+flask-cors
 flask-socketio
 eventlet
 python-dotenv
+hexlify
+sha256
+urandom
+X3DH
+hashlib
+pycryptodome

@@ -32,4 +32,5 @@ def handle_my_custom_event(json, methods=['GET', 'POST']):
 
 # MAINLINE
 if __name__ == "__main__":  # start the web server
-    socketio.run(app, debug=True, host=str(config.Config.SERVER))
+    #socketio.run(app, debug=True, host=str(config.Config.SERVER), keyfile='2205_key.pem', certfile='2205_cert.pem')
+    socketio.run(app, debug=True, host=str(config.Config.SERVER), keyfile='2205_key.pem', certfile='2205_cert.pem')
